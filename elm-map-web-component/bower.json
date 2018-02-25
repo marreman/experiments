@@ -1,0 +1,21 @@
+{
+  "name": "map-test",
+  "authors": [
+    "Martin Liberg <martin.liberg@izettle.com>"
+  ],
+  "description": "",
+  "main": "index.html",
+  "license": "MIT",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "google-map": "^2.0.4"
+  }
+}
