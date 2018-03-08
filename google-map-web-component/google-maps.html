@@ -1,0 +1,46 @@
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD3E1D9b-Z7ekrT3tbhl_dy8DCXuIuDDRc"></script>
+<script>
+  const log = x => console.log(x.toString())
+  const trim = s => s.trim()
+  const maybe = v => ({
+    map: f => maybe(v ? f(v) : v),
+    withDefault: d => v || d,
+    toString: () => `maybe(${v.toString()})`
+  })
+
+  window.customElements.define('google-map', class GoogleMap extends HTMLElement {
+    connectedCallback() {
+      const center = maybe(this.getAttribute('center'))
+        .map(center => center.split(','))
+        .map(center => center.map(trim))
+        .map(center => center.map(parseFloat))
+        .map(([lat, lng]) => ({ lat, lng }))
+        .withDefault({ lat: 0, lng: 0 })
+
+      const markers = ([...this.childNodes])
+        .filter(element => element.nodeName === 'GOOGLE-MAP-MARKER')
+        .map(element => ({
+          lat: parseFloat(element.getAttribute('latitude')),
+          lng: parseFloat(element.getAttribute('longitude'))
+        }))
+
+      this.style.display = 'block'
+      this.style.height = '400px'
+
+      this.map = new google.maps.Map(this, {
+        zoom: 4,
+        center
+      });
+
+      markers.forEach(marker => {
+        new google.maps.Marker({
+          position: marker,
+          map: this.map,
+          title: 'Marker'
+        });
+      })
+    }
+  });
+
+  window.customElements.define('google-map-marker', class GoogleMapMarker extends HTMLElement { });
+</script>
