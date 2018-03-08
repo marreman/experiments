@@ -1,0 +1,1 @@
+(print (add (sub 3 4) (sub 1 2)))
