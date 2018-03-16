@@ -37,7 +37,7 @@ main = do
 howToUseInfo :: String
 howToUseInfo =
     unlines
-        [ "Run a command in any Docker image with the current folder mounted."
+        [ "Run a command in any Docker image with the current folder mounted as a volume."
         , ""
         , "Usage:"
         , "  run [IMAGE] [COMMAND_TO_RUN_IN_IMAGE]"
