@@ -18,15 +18,12 @@ main = do
     arguments <- getArgs
 
     let dockerComposeFileTemp = currentDirectory </> "docker-compose.temp.yml"
-        dockerComposeFileTemplate = currentDirectory </> "docker-compose.yml.template"
         
     case arguments of
         image:commandToRunInImage -> do
-            template <- readFile dockerComposeFileTemplate
-
             let replaceImage = T.replace "IMAGE" $ T.pack image
                 replaceWorkingDir = T.replace "WORKING_DIR" $ T.pack currentDirectory
-                tempFile = (replaceImage . replaceWorkingDir) $ T.pack template
+                tempFile = (replaceImage . replaceWorkingDir) $ T.pack dockerComposeFileTemplate
                 commandArgs = ["-f", dockerComposeFileTemp, "run", "app"] ++ commandToRunInImage
 
             _ <- writeFile dockerComposeFileTemp $ T.unpack tempFile
@@ -48,4 +45,16 @@ howToUseInfo =
         , "Examples:"
         , "  run elixir mix new my-app"
         , "  run node:9.8.0 node my-script.js"
+        ]
+
+dockerComposeFileTemplate :: String
+dockerComposeFileTemplate =
+    unlines
+        [ "version: '3'"
+        , "services:"
+        , "  app:"
+        , "    image: IMAGE"
+        , "    working_dir: /app"
+        , "    volumes:"
+        , "      - WORKING_DIR:/app"
         ]
