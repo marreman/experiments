@@ -26,11 +26,9 @@ main = do
                 tempFile = (replaceImage . replaceWorkingDir) $ T.pack dockerComposeFileTemplate
                 commandArgs = ["-f", dockerComposeFileTemp, "run", "app"] ++ commandToRunInImage
 
-            _ <- writeFile dockerComposeFileTemp $ T.unpack tempFile
-            _ <- callProcess "docker-compose" commandArgs
-            _ <- removeFile dockerComposeFileTemp
-
-            return ()
+            writeFile dockerComposeFileTemp $ T.unpack tempFile
+            callProcess "docker-compose" commandArgs
+            removeFile dockerComposeFileTemp
         _ -> 
             putStrLn howToUseInfo
 
