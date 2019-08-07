@@ -1,32 +1,62 @@
 const fs = require("fs");
-const code = fs.readFileSync("sample-2.easy", "utf-8");
+const code = fs.readFileSync("sample-3.easy", "utf-8");
+const pretty = s => JSON.stringify(s, null, 2);
 
-const parse = (code) => {
-	let open = 0
-	let close = 0
-	let sub = ''
+// (print (add (sub 3 4) (sub 1 2)))
+//
 
-	Array.from(code.trim()).forEach(char => {
-		sub += char
+const s = [
+  {
+    operator: "print",
+    operands: [
+      {
+        operator: "add",
+        operands: [
+          {
+            operator: "sub",
+            operands: [3, 4]
+          },
+          {
+            operator: "sub",
+            operands: [1, 2]
+          }
+        ]
+      }
+    ]
+  }
+];
 
-		switch (char) {
-			case '(': open++; break;
-			case ')': close++; break;
-		}
+const parse = code => {
+  const match = code.match(new RegExp("(\\w+)\\n  ((?:.|\\n)*)"));
 
-		console.log(sub, open, close)
+  if (!match) {
+    return [];
+  }
 
-		if (!open || !close) {
-			return
-		}
+  const [_, operator, subCode] = match;
 
-		if (open === close) {
-			console.log("done")
-		}
-	})
+  console.log("OPERATOR:", operator)
+  console.log("SUBCODE:", subCode)
 
-	return code
+  return [
+    {
+      operator,
+      operands: parse(subCode)
+    }
+  ];
 };
 
+// const parse = code => {
+//   const match = code.replace(/\([^\(]*\)/i, expression => {
+//     return expression.replace(/\((\w+)([^\(]*)\)/i, (_, f, args) => {
+//       return `${f}(${args
+//         .trim()
+//         .split(" ")
+//         .join(", ")})`;
+//     });
+//   });
+//   console.log(match);
+// };
+
 const r = parse(code);
-console.log(r);
+console.log(pretty(r));

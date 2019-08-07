@@ -21,12 +21,10 @@ main = do
         
     case arguments of
         image:commandToRunInImage -> do
-            let replaceImage = T.replace "IMAGE" $ T.pack image
-                replaceWorkingDir = T.replace "WORKING_DIR" $ T.pack currentDirectory
-                tempFile = (replaceImage . replaceWorkingDir) $ T.pack dockerComposeFileTemplate
+            let tempFile = dockerComposeFile image currentDirectory
                 commandArgs = ["-f", dockerComposeFileTemp, "run", "app"] ++ commandToRunInImage
 
-            writeFile dockerComposeFileTemp $ T.unpack tempFile
+            writeFile dockerComposeFileTemp tempFile
             callProcess "docker-compose" commandArgs
             removeFile dockerComposeFileTemp
         _ -> 
@@ -45,8 +43,8 @@ howToUseInfo =
         , "  run node:9.8.0 node my-script.js"
         ]
 
-dockerComposeFileTemplate :: String
-dockerComposeFileTemplate =
+dockerComposeFile :: String -> String -> String
+dockerComposeFile image workingDir =
     unlines
         [ "version: '3'"
         , "services:"

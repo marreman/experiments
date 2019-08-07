@@ -2,6 +2,12 @@ module Main exposing (main)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Regex
+
+
+flatten : List (List a) -> List a
+flatten =
+    List.foldr (++) []
 
 
 (=>) : a -> b -> ( a, b )
@@ -41,71 +47,80 @@ main =
     tmux
 
 
-nr : Int -> Html msg
-nr n =
-    n
-        |> toString
-        |> String.append "  "
-        |> (flip String.append) " "
-        |> text
-        |> List.singleton
-        |> span
+syntaxHighlight : String -> Html msg
+syntaxHighlight code =
+    code
+        |> String.lines
+        |> List.map lineToNodes
+        |> List.intersperse [ br [] [] ]
+        |> flatten
+        |> pre
             [ style
-                [ "color" => colors.white
-                , "verticalAlign" => "middle"
+                [ "margin-top" => "0"
+                , "margin-bottom" => "0"
                 ]
             ]
 
 
-tabs : Int -> Html msg
-tabs n =
-    n
-        * 4
-        |> flip String.repeat " "
-        |> text
-
-
-vimContents : List (List (Html msg))
-vimContents =
-    [ [ nr 1
-      , text "pre [ style [] ]"
-      ]
-    , [ nr 2
-      , tabs 1
-      , color colors.magenta "["
-      , text " content"
-      ]
-    , [ nr 3
-      , tabs 2
-      , text "|> String.lines"
-      ]
-    , [ nr 4
-      , tabs 2
-      , text "|> List.indexedMap (\\nr line -> \"  \" ++ toString (nr + 1) ++ \" \" ++ line)"
-      ]
-    , [ nr 5
-      , tabs 2
-      , color colors.magenta "|>"
-      , text " String.join \"\""
-      ]
-    , [ nr 6
-      , tabs 2
-      , color colors.magenta "|>"
-      , text " text"
-      ]
-    , [ nr 7
-      , tabs 1
-      , color colors.magenta "]"
-      ]
-    ]
-
-
 vim : Html msg
 vim =
-    vimContents
-        |> List.intersperse ([ br [] [] ])
-        |> List.foldr (++) []
-        |> pre []
+    div [ style [ "display" => "flex" ] ]
+        [ div [ style [ "width" => "40%" ] ]
+            [ syntaxHighlight """
+color : String -> String -> Html msg
+color c s =
+    span [ style [ "color" => c ] ] [ text s ]
+
+
+main : Html msg
+main =
+    tmux
+     """
+            ]
+        , div [ style [ "width" => "60%" ] ]
+            [ syntaxHighlight """
+pre [ style [] ]
+    [ content
+        |> String.lines
+        |> List.indexedMap (\\line -> "  " ++ toString (nr + 1) ++ " " ++ line)
+        |> String.join ""
+        |> text
+    ]
+     """
+            ]
+        ]
+
+
+lineToNodes : String -> List (Html msg)
+lineToNodes line =
+    line
+        |> String.split " "
+        |> List.map wordToNodes
+        |> flatten
+        |> List.intersperse (text " ")
+
+
+wordToNodes : String -> List (Html msg)
+wordToNodes word =
+    let
+        symbol =
+            Regex.regex "\\[|\\]|\\|>|\\+|->|=>|=|:"
+
+        string =
+            Regex.regex "\""
+
+        number =
+            Regex.regex "\\d"
+    in
+        [ if Regex.contains symbol word then
+            color colors.magenta word
+          else if Regex.contains string word then
+            color colors.green word
+          else if Regex.contains number word then
+            color colors.blue word
+          else
+            text word
+        ]
 
 
 tmux : Html msg
@@ -170,6 +185,18 @@ tmux =
                 ]
             ]
             [ topPane vim
-            , bottomPane (text "")
+            , bottomPane (pre [] [ text """
+~/dev/experiments/callbag-location master
+$ l
+.cache
+dist
+node_modules
+src
+.gitignore
+package-lock.json
+package.json
+
+~/dev/experiments/callbag-location master
+$""" ])
             , bar
             ]
